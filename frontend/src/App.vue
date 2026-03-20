@@ -1,7 +1,43 @@
 <script setup>
 import { ref } from 'vue'
+import MermaidDiagram from './components/MermaidDiagram.vue'
 
 const count = ref(0)
+
+const architectureDiagram = `graph TD
+    subgraph LOCAL["Local Machine"]
+        FE_LOCAL["frontend/<br/>Vue + Vite<br/>localhost:5173"]
+        BE_LOCAL["backend/<br/>Express + Prisma + OpenAI<br/>localhost:3000"]
+        FE_LOCAL -->|"/api proxy"| BE_LOCAL
+    end
+
+    subgraph GITHUB["GitHub"]
+        REPO["mikkelboschmidt/claudetest<br/>main branch<br/>frontend/ + backend/"]
+    end
+
+    subgraph RAILWAY["Railway"]
+        subgraph SERVICES["Services"]
+            FE_SVC["Frontend Service<br/>Root: frontend/<br/>Build: vite build<br/>Start: serve dist"]
+            BE_SVC["Backend Service<br/>Root: backend/<br/>Build: prisma generate + migrate<br/>Start: node src/index.js"]
+            PG["PostgreSQL<br/>Addon"]
+        end
+
+        FE_SVC -->|"VITE_API_URL"| BE_SVC
+        BE_SVC -->|"FRONTEND_URL"| FE_SVC
+        PG -->|"DATABASE_URL"| BE_SVC
+        BE_SVC -->|"OPENAI_API_KEY"| OPENAI["OpenAI API"]
+    end
+
+    subgraph BROWSER["Users / Browser"]
+        USER["Browser"]
+    end
+
+    LOCAL -->|"git push"| GITHUB
+    GITHUB -->|"auto-deploy"| FE_SVC
+    GITHUB -->|"auto-deploy"| BE_SVC
+    USER -->|"loads page"| FE_SVC
+    USER -->|"POST /api/ai/chat"| BE_SVC
+    BE_SVC -->|"response"| USER`
 
 const cards = [
   {
@@ -35,6 +71,11 @@ const cards = [
         <h2>{{ card.title }}</h2>
         <p>{{ card.description }}</p>
       </div>
+    </div>
+
+    <div class="card diagram-card">
+      <h2>Architecture</h2>
+      <MermaidDiagram :chart="architectureDiagram" />
     </div>
 
     <div class="card counter-card">
@@ -121,6 +162,17 @@ h1 {
   line-height: 1.6;
   margin: 0;
   font-size: 0.95rem;
+}
+
+.diagram-card {
+  max-width: 900px;
+  width: 100%;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+
+.diagram-card h2 {
+  margin-bottom: 1.5rem;
 }
 
 .counter-card {
