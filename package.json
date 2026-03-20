@@ -1,0 +1,8 @@
+{
+  "name": "claudetest",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd frontend && npx vite preview --host 0.0.0.0 --port $PORT"
+  }
+}
